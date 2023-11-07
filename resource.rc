@@ -1,3 +1,9 @@
+// https://learn.microsoft.com/en-gb/windows/win32/menurc/about-resource-files
+// https://learn.microsoft.com/en-gb/windows/win32/menurc/resource-definition-statements
+// https://learn.microsoft.com/en-gb/windows/win32/menurc/rcdata-resource
+
 #include "resource.h"
 
+// `RCDATA` defines a raw resource permitting inclusion of binary data directly
+// in the PE. The syntax is as follows: `nameID RCDATA <filename>`.
 FAVICON_ICO RCDATA favicon.ico
