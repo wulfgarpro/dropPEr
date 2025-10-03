@@ -25,16 +25,18 @@ from Crypto.Util.Padding import pad
 from Crypto.Random import get_random_bytes
 import hashlib
 
-KEY = get_random_bytes(16) # Must match in `implant.cpp`.
+# The key is random! Everytime you run this you have to copy the output to `implant.cpp`.
+KEY = get_random_bytes(16)
 
 def print_c_str(name, value):
     print(f"unsigned char {name}[] = {{ 0x" + ", 0x".join(hex(x)[2:] for x in value) + " };")
 
 def encrypt_AES(pt, key):
-    iv = 16 * b'\x00'
-    cipher = AES.new(hashlib.sha256(key).digest(), AES.MODE_CBC, iv)
-    ct = cipher.encrypt(pad(pt, AES.block_size))
-    return ct
+    k = hashlib.sha256(key).digest()
+    iv = 16 * b"\x00"
+    plaintext = pad(pt, AES.block_size)
+    cipher = AES.new(k, AES.MODE_CBC, iv)
+    return cipher.encrypt(plaintext)
 
 print_c_str("KEY", KEY)
 
